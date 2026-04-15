@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Si-BankSa | Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">🌳 Si-BankSa</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">Halo, <strong>{{ session['nama'] }}</strong> ({{ session['role']|capitalize }})</span>
+                <a href="/logout" class="btn btn-danger btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            {% if session['role'] == 'admin' %}
+                <a href="/setor" class="btn btn-warning btn-lg fw-bold shadow-sm">⚖️ Admin: Catat Setoran Sampah</a>
+            {% endif %}
+            
+            {% if session['role'] == 'warga' %}
+                <a href="/iuran" class="btn btn-primary btn-lg fw-bold shadow-sm">💳 Warga: Bayar Iuran Bulanan</a>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-success h-100">
+                    <div class="card-header bg-success text-white">💰 Transparansi Kas RT</div>
+                    <div class="card-body">
+                        <h5>Saldo Bank Sampah: <span class="text-success fw-bold">Rp {{ kas_sampah }}</span></h5>
+                        <h5>Iuran Terkumpul: <span class="text-primary fw-bold">Rp {{ kas_iuran }}</span></h5>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-warning h-100">
+                    <div class="card-header bg-warning text-dark">🏆 Klasemen Warga Peduli Lingkungan</div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for nama, berat in leaderboard %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    {{ loop.index }}. {{ nama }}
+                                    <span class="badge bg-success rounded-pill px-3 py-2">{{ berat }} Kg</span>
+                                </li>
+                            {% else %}
+                                <li class="list-group-item text-muted px-0">Belum ada data setoran.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mt-4 border-bottom pb-2">Riwayat Transaksi & Bukti S3</h4>
+        <div class="table-responsive bg-white p-3 shadow-sm rounded">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Tipe</th>
+                        <th>Nama</th>
+                        <th>Detail</th>
+                        <th>Status</th>
+                        <th>Bukti Digital (Offloaded to S3)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in setoran %}
+                    <tr>
+                        <td><span class="badge bg-success">Setoran Sampah</span></td>
+                        <td>{{ s.nama }}</td>
+                        <td>{{ s.berat }} Kg ({{ s.jenis }})</td>
+                        <td><span class="text-success fw-bold">Diterima</span></td>
+                        <td><a href="{{ s.foto_url }}" target="_blank" class="btn btn-sm btn-outline-success">Lihat Foto Timbangan</a></td>
+                    </tr>
+                    {% endfor %}
+                    {% for i in iuran %}
+                    <tr>
+                        <td><span class="badge bg-primary">Iuran Bulanan</span></td>
+                        <td>{{ i.nama }}</td>
+                        <td>Bulan: {{ i.bulan }}</td>
+                        <td>
+                            {% if i.status == 'Menunggu Validasi Admin' %}
+                                <span class="text-warning fw-bold">{{ i.status }}</span>
+                            {% else %}
+                                <span class="text-success fw-bold">{{ i.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2 align-items-center">
+                                <a href="{{ i.bukti_url }}" target="_blank" class="btn btn-sm btn-outline-primary">Lihat Bukti</a>
+                                
+                                {% if session['role'] == 'admin' and i.status == 'Menunggu Validasi Admin' %}
+                                <form action="/validasi_iuran/{{ i.id }}" method="POST" class="m-0">
+                                    <button type="submit" class="btn btn-sm btn-success">✅ Validasi</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>
