@@ -11,7 +11,7 @@ app.secret_key = "kunci_rahasia_si_banksa_uts"
 # KONFIGURASI AWS S3
 # ==========================================
 S3_BUCKET = "sibanksa-bucket" 
-S3_REGION = "ap-southeast-1" 
+S3_REGION = "us-east-1" 
 AWS_ACCESS_KEY = os.environ.get("AWS_ACCESS_KEY_ID")
 AWS_SECRET_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
 
@@ -46,7 +46,8 @@ def upload_to_s3(file_obj):
                 file_obj, S3_BUCKET, filename,
                 ExtraArgs={"ContentType": file_obj.content_type}
             )
-            return f"https://{S3_BUCKET}.s3.{S3_REGION}.amazonaws.com/{filename}"
+            # Format URL khusus untuk us-east-1 agar tidak terkena Redirect
+            return f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
         except Exception as e:
             print("Error S3:", e)
             return None
