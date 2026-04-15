@@ -56,13 +56,11 @@ def upload_to_s3(file_obj):
 # INISIALISASI TABEL DATABASE OTOMATIS
 # ==========================================
 @app.before_request
-def create_tables():
-    if getattr(app, '_got_first_request', False):
-        return
-    app._got_first_request = True
+def init_db():
     try:
         conn = get_db_connection()
         with conn.cursor() as cursor:
+            # Buat tabel setoran
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS setoran (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -70,6 +68,7 @@ def create_tables():
                     berat FLOAT, saldo_didapat INT, foto_url VARCHAR(255)
                 )
             """)
+            # Buat tabel iuran
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS iuran (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -79,8 +78,12 @@ def create_tables():
             """)
         conn.commit()
         conn.close()
+        print("Database initialized successfully!")
     except Exception as e:
-        print("Gagal membuat tabel (Abaikan jika sedang testing lokal):", e)
+        print("Gagal inisialisasi database:", e)
+
+# Jalankan inisialisasi setiap kali aplikasi dimulai
+init_db()
 
 # ==========================================
 # ROUTING APLIKASI
